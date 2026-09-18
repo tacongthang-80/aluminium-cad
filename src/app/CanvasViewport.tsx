@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { BoundingBox2D, EPSILON, Polygon2D, Segment2D, Vector2D } from '../core/geom';
 import type { Entity, Scene } from '../core/scene';
 import { Viewport } from '../core/viewport';
+import { createSnapIndicator } from '../render/indicator';
 import { pointerToScreen, zoomFactorForWheelDelta } from '../render/interaction';
 import { DEFAULT_RENDER_STYLE, renderScene, type RenderStyle } from '../render';
 import { snapPoint } from '../render/snapping';
@@ -16,7 +17,9 @@ interface CanvasViewportProps {
 
 const EMPTY_SCENE_BOUNDS = new BoundingBox2D(-500, -500, 500, 500);
 const SNAP_TOLERANCE_PX = 10;
+const SNAP_INDICATOR_RADIUS_PX = 6;
 const DRAFT_ID = '__draft__';
+const SNAP_INDICATOR_ID = '__snap-indicator__';
 
 function rectangleFromCorners(start: Vector2D, end: Vector2D): Polygon2D | null {
   const minX = Math.min(start.x, end.x);
@@ -44,6 +47,7 @@ export function CanvasViewport({
   const drawRef = useRef<{ pointerId: number; anchor: Vector2D } | null>(null);
   const [viewport, setViewport] = useState<Viewport | null>(null);
   const [draft, setDraft] = useState<Entity | null>(null);
+  const [snapIndicator, setSnapIndicator] = useState<Vector2D | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -77,9 +81,22 @@ export function CanvasViewport({
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     if (!context || !viewport) return;
-    const renderedScene = draft ? scene.addEntity(draft).select([draft.id]) : scene;
+    let renderedScene = scene;
+    const highlightIds: string[] = [];
+    if (draft) {
+      renderedScene = renderedScene.addEntity(draft);
+      highlightIds.push(draft.id);
+    }
+    if (snapIndicator) {
+      renderedScene = renderedScene.addEntity({
+        id: SNAP_INDICATOR_ID,
+        shape: createSnapIndicator(snapIndicator, SNAP_INDICATOR_RADIUS_PX / viewport.scale),
+      });
+      highlightIds.push(SNAP_INDICATOR_ID);
+    }
+    if (highlightIds.length > 0) renderedScene = renderedScene.select(highlightIds);
     renderScene(context, renderedScene, viewport, style);
-  }, [draft, scene, style, viewport]);
+  }, [draft, scene, snapIndicator, style, viewport]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -90,6 +107,7 @@ export function CanvasViewport({
     dragRef.current = null;
     drawRef.current = null;
     setDraft(null);
+    setSnapIndicator(null);
   }, [tool]);
 
   useEffect(() => {
@@ -102,6 +120,7 @@ export function CanvasViewport({
       }
       drawRef.current = null;
       setDraft(null);
+      setSnapIndicator(null);
     };
     window.addEventListener('keydown', cancelDraft);
     return () => window.removeEventListener('keydown', cancelDraft);
@@ -160,13 +179,14 @@ export function CanvasViewport({
       return;
     }
 
+    const worldPoint = viewport.screenToWorld(screenPoint(event));
+    const result = snapPoint(worldPoint, scene, SNAP_TOLERANCE_PX / viewport.scale);
+    setSnapIndicator(result.snapped ? result.point : null);
     const draw = drawRef.current;
     if (!draw || draw.pointerId !== event.pointerId) return;
-    const worldPoint = viewport.screenToWorld(screenPoint(event));
-    const end = snapPoint(worldPoint, scene, SNAP_TOLERANCE_PX / viewport.scale).point;
     const shape = tool === 'segment'
-      ? new Segment2D(draw.anchor, end)
-      : rectangleFromCorners(draw.anchor, end);
+      ? new Segment2D(draw.anchor, result.point)
+      : rectangleFromCorners(draw.anchor, result.point);
     if (shape) setDraft({ id: DRAFT_ID, shape });
   };
 
@@ -202,6 +222,7 @@ export function CanvasViewport({
     dragRef.current = null;
     drawRef.current = null;
     setDraft(null);
+    setSnapIndicator(null);
   };
 
   return (
@@ -213,6 +234,7 @@ export function CanvasViewport({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
+        onPointerLeave={() => setSnapIndicator(null)}
         style={{ display: 'block', touchAction: 'none', cursor: tool === 'pan' ? 'grab' : 'crosshair' }}
       />
     </div>

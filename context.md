@@ -233,3 +233,29 @@
 
 - Undo/redo controls and shortcuts, existing-entity selection/editing, idle snap indicators, additional geometry tools, and touch pinch zoom remain deferred.
 - Verification passed with 79/79 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files. Desktop and narrow browser captures confirmed responsive toolbar and canvas rendering.
+
+## 2026-09-18 - Visual snap indicator
+
+### What changed and why
+
+- Added a pure helper that creates an eight-sided snap marker around a world-space point.
+- Added hover and active-drawing snap feedback for the segment and rectangle tools while preserving the existing snapping result and renderer.
+- Extended tool-change, Escape, pointer-cancel, and pointer-leave cleanup so stale indicators do not remain visible.
+
+### Key decisions
+
+- The marker is a temporary selected polygon with its own `__snap-indicator__` ID. This reuses the renderer's existing blue selection style and keeps renderer behavior unchanged.
+- Its 6px radius is converted through the current Viewport scale, so the marker remains visually stable while zooming.
+- Pointer movement computes snapping once and shares that result between the indicator and draft geometry. The pan branch still returns before any snap work.
+
+### Files touched
+
+- `src/render/indicator.ts`
+- `tests/render/indicator.test.ts`
+- `src/app/CanvasViewport.tsx`
+- `context.md`
+
+### Follow-up
+
+- Ortho mode, Polyline2D and its infrastructure/tool integration, Trim, and Extend remain deferred to their planned sprint steps.
+- Verification passed with 81/81 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.
