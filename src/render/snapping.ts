@@ -1,62 +1,68 @@
-import { Polygon2D, Polyline2D, Segment2D, type Vector2D } from '../core/geom';
+import { Polygon2D, Segment2D, type Vector2D } from '../core/geom';
 import type { Scene } from '../core/scene';
+
+export type SnapMode = 'endpoint' | 'midpoint' | 'nearest' | 'intersection' | 'perpendicular';
+
+export interface SnapOptions {
+  readonly modes: ReadonlySet<SnapMode>;
+  readonly toleranceWorld: number;
+  readonly referencePoint?: Vector2D;
+}
 
 export interface SnapResult {
   readonly point: Vector2D;
   readonly snapped: boolean;
+  readonly mode?: SnapMode;
 }
 
-export function snapPoint(
-  worldPoint: Vector2D,
-  scene: Scene,
-  toleranceWorld: number,
-): SnapResult {
-  let bestPoint: Vector2D | undefined;
-  let bestDistance = toleranceWorld;
+const PRIORITY: Record<SnapMode, number> = {
+  endpoint: 0,
+  intersection: 1,
+  perpendicular: 2,
+  midpoint: 3,
+  nearest: 4,
+};
 
-  const consider = (candidate: Vector2D) => {
-    const distance = worldPoint.distanceTo(candidate);
-    if (distance <= bestDistance) {
-      bestPoint = candidate;
-      bestDistance = distance;
+export function snapPoint(worldPoint: Vector2D, scene: Scene, options: SnapOptions): SnapResult {
+  let best: { point: Vector2D; mode: SnapMode; distance: number } | undefined;
+
+  const consider = (point: Vector2D, mode: SnapMode) => {
+    const distance = worldPoint.distanceTo(point);
+    if (distance > options.toleranceWorld) return;
+    if (!best || distance < best.distance ||
+      (distance === best.distance && PRIORITY[mode] < PRIORITY[best.mode])) {
+      best = { point, mode, distance };
     }
-  };
-
-  const considerSegment = (segment: Segment2D) => {
-    consider(segment.start);
-    consider(segment.end);
-    const projection = segment.projectPoint(worldPoint);
-    if (projection.isInside) consider(projection.point);
   };
 
   for (const entity of scene.entities) {
+    const edges: Segment2D[] = [];
     if (entity.shape instanceof Segment2D) {
-      considerSegment(entity.shape);
-      continue;
-    }
-
-    if (entity.shape instanceof Polyline2D) {
-      entity.shape.vertices.forEach(consider);
-      for (let index = 0; index < entity.shape.vertices.length - 1; index++) {
-        considerSegment(new Segment2D(
-          entity.shape.vertices[index],
-          entity.shape.vertices[index + 1],
-        ));
+      if (options.modes.has('endpoint')) {
+        consider(entity.shape.start, 'endpoint');
+        consider(entity.shape.end, 'endpoint');
       }
-      continue;
+      edges.push(entity.shape);
+    } else {
+      if (options.modes.has('endpoint')) entity.shape.vertices.forEach(point => consider(point, 'endpoint'));
+      const closed = entity.shape instanceof Polygon2D;
+      const edgeCount = closed ? entity.shape.vertices.length : entity.shape.vertices.length - 1;
+      for (let index = 0; index < edgeCount; index++) {
+        const next = closed ? (index + 1) % entity.shape.vertices.length : index + 1;
+        edges.push(new Segment2D(entity.shape.vertices[index], entity.shape.vertices[next]));
+      }
     }
 
-    const polygon: Polygon2D = entity.shape;
-    polygon.vertices.forEach(consider);
-    for (let index = 0; index < polygon.vertices.length; index++) {
-      considerSegment(new Segment2D(
-        polygon.vertices[index],
-        polygon.vertices[(index + 1) % polygon.vertices.length],
-      ));
+    for (const edge of edges) {
+      if (options.modes.has('midpoint')) consider(edge.midpoint(), 'midpoint');
+      if (options.modes.has('nearest')) {
+        const projection = edge.projectPoint(worldPoint);
+        if (projection.isInside) consider(projection.point, 'nearest');
+      }
     }
   }
 
-  return bestPoint
-    ? { point: bestPoint, snapped: true }
+  return best
+    ? { point: best.point, snapped: true, mode: best.mode }
     : { point: worldPoint, snapped: false };
 }

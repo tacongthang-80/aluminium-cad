@@ -8,7 +8,7 @@ import { pointerToScreen, zoomFactorForWheelDelta } from '../render/interaction'
 import { applyOrtho } from '../render/ortho';
 import { findNearestSegmentEntity } from '../render/pick';
 import { DEFAULT_RENDER_STYLE, renderScene, type RenderStyle } from '../render';
-import { snapPoint } from '../render/snapping';
+import { snapPoint, type SnapMode } from '../render/snapping';
 import { computeTrim } from '../render/trim';
 import type { Tool } from './tool';
 
@@ -18,6 +18,7 @@ interface CanvasViewportProps {
   readonly onCommitEntity: (entity: Entity) => void;
   readonly onReplaceEntity: (id: string, shape: Segment2D | Polygon2D | Polyline2D) => void;
   readonly orthoEnabled: boolean;
+  readonly enabledSnapModes: ReadonlySet<SnapMode>;
   readonly style?: RenderStyle;
 }
 
@@ -47,6 +48,7 @@ export function CanvasViewport({
   onCommitEntity,
   onReplaceEntity,
   orthoEnabled,
+  enabledSnapModes,
   style = DEFAULT_RENDER_STYLE,
 }: CanvasViewportProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -163,7 +165,11 @@ export function CanvasViewport({
     );
 
   const resolveDrawPoint = (worldPoint: Vector2D, currentViewport: Viewport, anchor?: Vector2D) => {
-    const result = snapPoint(worldPoint, scene, SNAP_TOLERANCE_PX / currentViewport.scale);
+    const result = snapPoint(worldPoint, scene, {
+      modes: enabledSnapModes,
+      toleranceWorld: SNAP_TOLERANCE_PX / currentViewport.scale,
+      referencePoint: anchor,
+    });
     if (result.snapped || !orthoEnabled || tool !== 'segment' || !anchor) return result;
     return { point: applyOrtho(anchor, worldPoint), snapped: false };
   };
@@ -187,7 +193,10 @@ export function CanvasViewport({
       return;
     }
     const worldPoint = viewport.screenToWorld(point);
-    const anchor = snapPoint(worldPoint, scene, SNAP_TOLERANCE_PX / viewport.scale).point;
+    const anchor = snapPoint(worldPoint, scene, {
+      modes: enabledSnapModes,
+      toleranceWorld: SNAP_TOLERANCE_PX / viewport.scale,
+    }).point;
     drawRef.current = { pointerId: event.pointerId, anchor };
   };
 

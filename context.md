@@ -402,3 +402,32 @@
 
 - Polygon/Polyline targets and hover previews remain deferred. Very large drawings beyond the finite projection distance would require a true ray primitive.
 - Verification passed with 110/110 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.
+
+## 2026-09-19 - OSNAP modes foundation
+
+### What changed and why
+
+- Replaced implicit snapping with named Endpoint, Midpoint, Nearest, Intersection, and Perpendicular mode options and mode-tagged results.
+- Implemented candidate generation for Endpoint, Midpoint, and Nearest with deterministic distance and priority selection.
+- Added a dedicated responsive OSNAP checkbox row and wired immutable mode-set state through the canvas.
+
+### Key decisions
+
+- Equal-distance candidates use the planned priority order: Endpoint, Intersection, Perpendicular, Midpoint, then Nearest.
+- Intersection and Perpendicular are exposed and enabled by default but intentionally contribute no candidates until Step B.
+- The OSNAP panel occupies its own full-width header row so five independent toggles remain scannable and wrap cleanly on narrow screens. All five modes default on, matching common CAD expectations.
+- The draw anchor is passed as `referencePoint` through the shared resolve path now, avoiding another CanvasViewport API change when Perpendicular is implemented.
+
+### Files touched
+
+- `src/render/snapping.ts`
+- `tests/render/snapping.test.ts`
+- `src/app/OsnapPanel.tsx`
+- `src/app/CanvasViewport.tsx`
+- `src/app/App.tsx`
+- `context.md`
+
+### Follow-up
+
+- Intersection and Perpendicular candidate generation remains deferred to OSNAP Step B. Indicator styling remains shared across modes.
+- Verification passed with 111/111 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files. Desktop and narrow captures confirmed the OSNAP row remains usable.

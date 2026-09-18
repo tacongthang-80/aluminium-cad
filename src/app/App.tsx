@@ -3,7 +3,9 @@ import { Polygon2D, Vector2D } from '../core/geom';
 import { Scene, SceneHistory } from '../core/scene';
 import { CanvasViewport } from './CanvasViewport';
 import { Toolbar } from './Toolbar';
+import { OsnapPanel } from './OsnapPanel';
 import type { Tool } from './tool';
+import type { SnapMode } from '../render/snapping';
 
 const initialScene = new Scene([
   {
@@ -21,6 +23,16 @@ export function App() {
   const [history, setHistory] = useState(() => new SceneHistory(initialScene));
   const [tool, setTool] = useState<Tool>('pan');
   const [orthoEnabled, setOrthoEnabled] = useState(false);
+  const [enabledSnapModes, setEnabledSnapModes] = useState<Set<SnapMode>>(() => new Set([
+    'endpoint', 'midpoint', 'nearest', 'intersection', 'perpendicular',
+  ]));
+
+  const toggleSnapMode = (mode: SnapMode) => setEnabledSnapModes(current => {
+    const next = new Set(current);
+    if (next.has(mode)) next.delete(mode);
+    else next.add(mode);
+    return next;
+  });
 
   return (
     <main style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
@@ -45,12 +57,14 @@ export function App() {
           orthoEnabled={orthoEnabled}
           onOrthoToggle={() => setOrthoEnabled(enabled => !enabled)}
         />
+        <OsnapPanel enabledModes={enabledSnapModes} onToggle={toggleSnapMode} />
       </header>
       <section style={{ flex: 1, minHeight: 0 }} aria-label="Bản vẽ">
         <CanvasViewport
           scene={history.current}
           tool={tool}
           orthoEnabled={orthoEnabled}
+          enabledSnapModes={enabledSnapModes}
           onCommitEntity={entity => setHistory(current =>
             current.execute(current.current.addEntity(entity)))}
           onReplaceEntity={(id, shape) => setHistory(current =>
