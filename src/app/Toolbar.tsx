@@ -12,6 +12,7 @@ const tools: ReadonlyArray<{ tool: Tool; label: string }> = [
   { tool: 'segment', label: 'Vẽ đoạn thẳng' },
   { tool: 'rectangle', label: 'Vẽ hình chữ nhật' },
   { tool: 'trim', label: 'Cắt (Trim)' },
+  { tool: 'extend', label: 'Kéo dài (Extend)' },
 ];
 
 function buttonStyle(active: boolean) {

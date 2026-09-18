@@ -374,3 +374,31 @@
 
 - Polygon/Polyline targets, hover preview, and Extend remain outside this step.
 - Verification passed with 104/104 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.
+
+## 2026-09-19 - Segment Extend command
+
+### What changed and why
+
+- Added a pure Extend operation that projects the clicked Segment2D endpoint until the nearest boundary crossing.
+- Added the Extend toolbar tool and reused Trim's immediate picking and same-ID SceneHistory replacement path.
+- Added tests for both endpoints, nearest-boundary selection, wrong-direction misses, unsupported targets, and already-touching boundaries.
+
+### Key decisions
+
+- Extension uses a 1,000,000mm finite projected segment as a practical ray compatible with the existing segment intersection engine.
+- The endpoint closest to the click is extended away from the opposite endpoint; equal click distances deterministically select the start.
+- Hits within `EPSILON` of the selected endpoint are excluded, and equal-distance boundary ties preserve scene order through strict nearest replacement.
+
+### Files touched
+
+- `src/render/extend.ts`
+- `tests/render/extend.test.ts`
+- `src/app/tool.ts`
+- `src/app/Toolbar.tsx`
+- `src/app/CanvasViewport.tsx`
+- `context.md`
+
+### Follow-up
+
+- Polygon/Polyline targets and hover previews remain deferred. Very large drawings beyond the finite projection distance would require a true ray primitive.
+- Verification passed with 110/110 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.

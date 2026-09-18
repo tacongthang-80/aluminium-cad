@@ -3,6 +3,7 @@ import { BoundingBox2D, EPSILON, Polygon2D, Polyline2D, Segment2D, Vector2D } fr
 import type { Entity, Scene } from '../core/scene';
 import { Viewport } from '../core/viewport';
 import { createSnapIndicator } from '../render/indicator';
+import { computeExtend } from '../render/extend';
 import { pointerToScreen, zoomFactorForWheelDelta } from '../render/interaction';
 import { applyOrtho } from '../render/ortho';
 import { findNearestSegmentEntity } from '../render/pick';
@@ -170,11 +171,13 @@ export function CanvasViewport({
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     if (!viewport) return;
     const point = screenPoint(event);
-    if (tool === 'trim') {
+    if (tool === 'trim' || tool === 'extend') {
       const worldPoint = viewport.screenToWorld(point);
       const target = findNearestSegmentEntity(worldPoint, scene, SNAP_TOLERANCE_PX / viewport.scale);
       if (!target) return;
-      const result = computeTrim(target, worldPoint, scene);
+      const result = tool === 'trim'
+        ? computeTrim(target, worldPoint, scene)
+        : computeExtend(target, worldPoint, scene);
       if (result) onReplaceEntity(target.id, result);
       return;
     }
@@ -199,7 +202,7 @@ export function CanvasViewport({
       setViewport(current => current ? current.pan(delta) : current);
       return;
     }
-    if (tool === 'trim') return;
+    if (tool === 'trim' || tool === 'extend') return;
 
     const worldPoint = viewport.screenToWorld(screenPoint(event));
     const draw = drawRef.current;
@@ -225,7 +228,7 @@ export function CanvasViewport({
       dragRef.current = null;
       return;
     }
-    if (tool === 'trim') return;
+    if (tool === 'trim' || tool === 'extend') return;
 
     const draw = drawRef.current;
     if (!viewport || !draw || draw.pointerId !== event.pointerId) return;
