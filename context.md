@@ -287,3 +287,29 @@
 
 - A temporary keyboard modifier, Ortho-specific indicator, Polyline2D, Trim, and Extend remain deferred.
 - Verification passed with 85/85 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files. Desktop and narrow captures confirmed responsive toolbar grouping.
+
+## 2026-09-18 - Polyline2D geometry primitive
+
+### What changed and why
+
+- Added an immutable `Polyline2D` primitive for open chains of two or more vertices.
+- Added exact tests for construction rules, bounding boxes, open-chain length, self-intersection allowance, defensive copying, and freezing.
+- Re-exported the primitive from the geometry barrel for later Scene and renderer integration.
+
+### Key decisions
+
+- Validation only rejects consecutive vertices closer than `EPSILON`; points exactly at the tolerance boundary are accepted, and the first/last pair is not treated as adjacent because the chain is open.
+- Self-intersection is deliberately allowed. The class has no closing edge and exposes no polygon-only area, winding, containment, centroid, or offset operations.
+- Bounding boxes scan all vertices, while length sums exactly the `n - 1` consecutive segments.
+
+### Files touched
+
+- `src/core/geom/Polyline2D.ts`
+- `src/core/geom/index.ts`
+- `tests/geom/Polyline2D.test.ts`
+- `context.md`
+
+### Follow-up
+
+- Entity, Scene, renderer, snapping, and drawing-tool support remain deferred to sprint steps 3b and 3c.
+- Verification passed with 91/91 tests, `npm run build`, and 100% statement/branch/function/line coverage for `Polyline2D.ts` and the full covered executable codebase.
