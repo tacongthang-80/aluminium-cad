@@ -36,8 +36,16 @@ Chưa tạo package-lock.json vì môi trường bàn giao chưa chạy được
 
 ## Trạng thái xác minh
 
-30 ca kiểm tra đã chạy thành công bằng chuyển đổi cú pháp TypeScript của Node và adapter node:assert. Xem verification.json. Đây KHÔNG phải kết quả npm test hoặc kiểm tra kiểu TypeScript.
+GitHub Actions đã xác minh commit 9be879b745869e1c7e856d68f67a8433bd5e7a50:
 
-Chưa chạy được npm install, Vitest, tsc, Vite build hoặc đo coverage vì shell của phiên làm việc bị chính sách phê duyệt chặn. Cấu hình coverage đặt ngưỡng 95% cho statements, branches, functions và lines; chưa chứng minh đã đạt. Pipeline CI sẽ kiểm tra và báo lỗi nếu chưa đạt.
+- npm test: 5 file, 30/30 test đạt.
+- npm run test:coverage: statements 100%, lines 100%, functions 100%, branches 97.36% trên toàn bộ core; vượt ngưỡng tổng 95%.
+- Riêng Polygon2D có branch coverage 92.15%; ngưỡng hiện áp dụng tổng thể, không phải từng file.
+- npm run build: tsc và Vite production build thành công.
+- npm install báo 3 lỗ hổng mức moderate trong dependency; chưa xử lý trong đợt này.
 
-Chưa push GitHub hoặc deploy: cần repository đích; phiên bản hiện tại chỉ là thư viện và trang minh họa.
+[Kết quả CI](https://github.com/tacongthang-80/aluminium-cad/actions/runs/35308864214).
+
+verification.json ghi lại lượt kiểm tra Node trực tiếp trước đó, không thay thế báo cáo Vitest trên CI.
+
+Mã nguồn đã có trên GitHub. Chưa deploy website; phiên bản hiện tại là thư viện hình học và trang minh họa, chưa có trình vẽ cửa tương tác.
