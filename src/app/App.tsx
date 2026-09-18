@@ -20,6 +20,7 @@ const initialScene = new Scene([
 export function App() {
   const [history, setHistory] = useState(() => new SceneHistory(initialScene));
   const [tool, setTool] = useState<Tool>('pan');
+  const [orthoEnabled, setOrthoEnabled] = useState(false);
 
   return (
     <main style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
@@ -38,12 +39,18 @@ export function App() {
         fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
       }}>
         <strong style={{ fontSize: 16, lineHeight: '24px', letterSpacing: 0 }}>Aluminium CAD</strong>
-        <Toolbar activeTool={tool} onToolChange={setTool} />
+        <Toolbar
+          activeTool={tool}
+          onToolChange={setTool}
+          orthoEnabled={orthoEnabled}
+          onOrthoToggle={() => setOrthoEnabled(enabled => !enabled)}
+        />
       </header>
       <section style={{ flex: 1, minHeight: 0 }} aria-label="Bản vẽ">
         <CanvasViewport
           scene={history.current}
           tool={tool}
+          orthoEnabled={orthoEnabled}
           onCommitEntity={entity => setHistory(current =>
             current.execute(current.current.addEntity(entity)))}
         />

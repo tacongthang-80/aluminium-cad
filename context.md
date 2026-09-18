@@ -259,3 +259,31 @@
 
 - Ortho mode, Polyline2D and its infrastructure/tool integration, Trim, and Extend remain deferred to their planned sprint steps.
 - Verification passed with 81/81 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.
+
+## 2026-09-18 - Ortho drawing mode
+
+### What changed and why
+
+- Added a pure orthogonal constraint helper that locks a point horizontally or vertically relative to a draw anchor.
+- Added a separately grouped Ortho toolbar toggle and applied it to segment previews and commits.
+- Preserved snap precedence, so real geometry snap points override the axis constraint; rectangle and idle-hover behavior remain unchanged.
+
+### Key decisions
+
+- Equal X/Y deltas resolve horizontally for deterministic 45-degree behavior.
+- A single local `resolveDrawPoint` path handles snap-first precedence and optional Ortho for both pointer movement and pointer release, preventing preview/commit drift.
+- Ortho remains independent of the active tool and defaults off. Its button uses the existing `aria-pressed` and blue active-state language but sits beyond a divider to communicate modifier semantics.
+
+### Files touched
+
+- `src/render/ortho.ts`
+- `tests/render/ortho.test.ts`
+- `src/app/Toolbar.tsx`
+- `src/app/CanvasViewport.tsx`
+- `src/app/App.tsx`
+- `context.md`
+
+### Follow-up
+
+- A temporary keyboard modifier, Ortho-specific indicator, Polyline2D, Trim, and Extend remain deferred.
+- Verification passed with 85/85 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files. Desktop and narrow captures confirmed responsive toolbar grouping.

@@ -4,6 +4,7 @@ import type { Entity, Scene } from '../core/scene';
 import { Viewport } from '../core/viewport';
 import { createSnapIndicator } from '../render/indicator';
 import { pointerToScreen, zoomFactorForWheelDelta } from '../render/interaction';
+import { applyOrtho } from '../render/ortho';
 import { DEFAULT_RENDER_STYLE, renderScene, type RenderStyle } from '../render';
 import { snapPoint } from '../render/snapping';
 import type { Tool } from './tool';
@@ -12,6 +13,7 @@ interface CanvasViewportProps {
   readonly scene: Scene;
   readonly tool: Tool;
   readonly onCommitEntity: (entity: Entity) => void;
+  readonly orthoEnabled: boolean;
   readonly style?: RenderStyle;
 }
 
@@ -39,6 +41,7 @@ export function CanvasViewport({
   scene,
   tool,
   onCommitEntity,
+  orthoEnabled,
   style = DEFAULT_RENDER_STYLE,
 }: CanvasViewportProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -154,6 +157,12 @@ export function CanvasViewport({
       window.devicePixelRatio || 1,
     );
 
+  const resolveDrawPoint = (worldPoint: Vector2D, currentViewport: Viewport, anchor?: Vector2D) => {
+    const result = snapPoint(worldPoint, scene, SNAP_TOLERANCE_PX / currentViewport.scale);
+    if (result.snapped || !orthoEnabled || tool !== 'segment' || !anchor) return result;
+    return { point: applyOrtho(anchor, worldPoint), snapped: false };
+  };
+
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     if (!viewport) return;
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -180,9 +189,9 @@ export function CanvasViewport({
     }
 
     const worldPoint = viewport.screenToWorld(screenPoint(event));
-    const result = snapPoint(worldPoint, scene, SNAP_TOLERANCE_PX / viewport.scale);
-    setSnapIndicator(result.snapped ? result.point : null);
     const draw = drawRef.current;
+    const result = resolveDrawPoint(worldPoint, viewport, draw?.anchor);
+    setSnapIndicator(result.snapped ? result.point : null);
     if (!draw || draw.pointerId !== event.pointerId) return;
     const shape = tool === 'segment'
       ? new Segment2D(draw.anchor, result.point)
@@ -208,7 +217,7 @@ export function CanvasViewport({
     if (!viewport || !draw || draw.pointerId !== event.pointerId) return;
     releasePointer(event);
     const worldPoint = viewport.screenToWorld(screenPoint(event));
-    const end = snapPoint(worldPoint, scene, SNAP_TOLERANCE_PX / viewport.scale).point;
+    const end = resolveDrawPoint(worldPoint, viewport, draw.anchor).point;
     const shape = tool === 'segment'
       ? (draw.anchor.distanceTo(end) > EPSILON ? new Segment2D(draw.anchor, end) : null)
       : rectangleFromCorners(draw.anchor, end);
