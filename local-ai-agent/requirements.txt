@@ -1,0 +1,4 @@
+requests>=2.31
+charset-normalizer>=3.3
+numpy>=1.24
+rich>=13.7

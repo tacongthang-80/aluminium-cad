@@ -1,1 +1,1 @@
-export default { test: { environment: 'node', coverage: { provider: 'v8', include: ['src/core/geom/**/*.ts'], exclude: ['src/core/geom/index.ts'], thresholds: { statements: 95, branches: 95, functions: 95, lines: 95 } } } };
+export default { test: { environment: 'node', coverage: { provider: 'v8', include: ['src/core/geom/**/*.ts','src/core/viewport/**/*.ts','src/core/catalog/**/*.ts'], exclude: ['src/core/geom/index.ts','src/core/viewport/index.ts','src/core/catalog/index.ts'], thresholds: { statements: 95, branches: 95, functions: 95, lines: 95 } } } };
