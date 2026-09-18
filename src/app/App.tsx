@@ -53,6 +53,8 @@ export function App() {
           orthoEnabled={orthoEnabled}
           onCommitEntity={entity => setHistory(current =>
             current.execute(current.current.addEntity(entity)))}
+          onReplaceEntity={(id, shape) => setHistory(current =>
+            current.execute(current.current.removeEntity(id).addEntity({ id, shape })))}
         />
       </section>
     </main>

@@ -1,1 +1,1 @@
-export type Tool = 'pan' | 'segment' | 'rectangle';
+export type Tool = 'pan' | 'segment' | 'rectangle' | 'trim';

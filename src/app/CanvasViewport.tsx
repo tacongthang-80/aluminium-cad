@@ -1,18 +1,21 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { BoundingBox2D, EPSILON, Polygon2D, Segment2D, Vector2D } from '../core/geom';
+import { BoundingBox2D, EPSILON, Polygon2D, Polyline2D, Segment2D, Vector2D } from '../core/geom';
 import type { Entity, Scene } from '../core/scene';
 import { Viewport } from '../core/viewport';
 import { createSnapIndicator } from '../render/indicator';
 import { pointerToScreen, zoomFactorForWheelDelta } from '../render/interaction';
 import { applyOrtho } from '../render/ortho';
+import { findNearestSegmentEntity } from '../render/pick';
 import { DEFAULT_RENDER_STYLE, renderScene, type RenderStyle } from '../render';
 import { snapPoint } from '../render/snapping';
+import { computeTrim } from '../render/trim';
 import type { Tool } from './tool';
 
 interface CanvasViewportProps {
   readonly scene: Scene;
   readonly tool: Tool;
   readonly onCommitEntity: (entity: Entity) => void;
+  readonly onReplaceEntity: (id: string, shape: Segment2D | Polygon2D | Polyline2D) => void;
   readonly orthoEnabled: boolean;
   readonly style?: RenderStyle;
 }
@@ -41,6 +44,7 @@ export function CanvasViewport({
   scene,
   tool,
   onCommitEntity,
+  onReplaceEntity,
   orthoEnabled,
   style = DEFAULT_RENDER_STYLE,
 }: CanvasViewportProps) {
@@ -165,8 +169,16 @@ export function CanvasViewport({
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     if (!viewport) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
     const point = screenPoint(event);
+    if (tool === 'trim') {
+      const worldPoint = viewport.screenToWorld(point);
+      const target = findNearestSegmentEntity(worldPoint, scene, SNAP_TOLERANCE_PX / viewport.scale);
+      if (!target) return;
+      const result = computeTrim(target, worldPoint, scene);
+      if (result) onReplaceEntity(target.id, result);
+      return;
+    }
+    event.currentTarget.setPointerCapture(event.pointerId);
     if (tool === 'pan') {
       dragRef.current = { pointerId: event.pointerId, point };
       return;
@@ -187,6 +199,7 @@ export function CanvasViewport({
       setViewport(current => current ? current.pan(delta) : current);
       return;
     }
+    if (tool === 'trim') return;
 
     const worldPoint = viewport.screenToWorld(screenPoint(event));
     const draw = drawRef.current;
@@ -212,6 +225,7 @@ export function CanvasViewport({
       dragRef.current = null;
       return;
     }
+    if (tool === 'trim') return;
 
     const draw = drawRef.current;
     if (!viewport || !draw || draw.pointerId !== event.pointerId) return;

@@ -343,3 +343,34 @@
 
 - A UI tool for creating Polyline2D entities remains deferred to step 3c. Trim and Extend remain separate later prompts.
 - Verification passed with 95/95 tests, `npm run build`, and 100% statement/branch/function/line coverage for the touched executable files and full covered codebase.
+
+## 2026-09-19 - Segment Trim command
+
+### What changed and why
+
+- Added shared scene-segment decomposition and nearest Segment2D picking helpers.
+- Added a pure Trim operation that shortens a Segment2D to the nearest valid crossing on the clicked side.
+- Added the Trim toolbar tool and immutable same-ID entity replacement through SceneHistory.
+
+### Key decisions
+
+- Polygon boundaries include their closing edge; Polyline2D boundaries remain open. Only Segment2D entities can be picked as Trim targets.
+- Intersections at target endpoints are excluded, and non-point intersections are ignored. When intersection distances tie, existing scene order remains stable because replacement only occurs for a strictly closer candidate.
+- Trim executes immediately on pointerdown and bypasses pointer capture, drafts, Ortho, and snap indicators.
+
+### Files touched
+
+- `src/render/pick.ts`
+- `src/render/trim.ts`
+- `tests/render/pick.test.ts`
+- `tests/render/trim.test.ts`
+- `src/app/tool.ts`
+- `src/app/Toolbar.tsx`
+- `src/app/CanvasViewport.tsx`
+- `src/app/App.tsx`
+- `context.md`
+
+### Follow-up
+
+- Polygon/Polyline targets, hover preview, and Extend remain outside this step.
+- Verification passed with 104/104 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.
