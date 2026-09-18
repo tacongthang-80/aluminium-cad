@@ -1,0 +1,125 @@
+{
+  "method": "Node TypeScript syntax transform and node:assert adapter executing the test callbacks; not a Vitest, tsc or coverage run",
+  "results": [
+    {
+      "name": "arithmetic, lengths and immutable results",
+      "status": "pass"
+    },
+    {
+      "name": "angles and normals in Y-up coordinates",
+      "status": "pass"
+    },
+    {
+      "name": "degenerate and invalid inputs",
+      "status": "pass"
+    },
+    {
+      "name": "tolerance and conversions",
+      "status": "pass"
+    },
+    {
+      "name": "geometry and projection",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 0",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 1",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 2",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 3",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 4",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 5",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 6",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 7",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 8",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 9",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 10",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 11",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 12",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 13",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 14",
+      "status": "pass"
+    },
+    {
+      "name": "intersection 15",
+      "status": "pass"
+    },
+    {
+      "name": "X coordinate and zero segment",
+      "status": "pass"
+    },
+    {
+      "name": "bounds, containment, touching and separated boxes",
+      "status": "pass"
+    },
+    {
+      "name": "factories and composition order",
+      "status": "pass"
+    },
+    {
+      "name": "inverse round trips and small valid scales",
+      "status": "pass"
+    },
+    {
+      "name": "validation and defensive copy",
+      "status": "pass"
+    },
+    {
+      "name": "area, winding, centroid and bounding box",
+      "status": "pass"
+    },
+    {
+      "name": "inside, outside, boundaries and concavity",
+      "status": "pass"
+    },
+    {
+      "name": "offset expands and contracts either winding",
+      "status": "pass"
+    },
+    {
+      "name": "rejects invalid polygons and copies vertices",
+      "status": "pass"
+    }
+  ]
+}
