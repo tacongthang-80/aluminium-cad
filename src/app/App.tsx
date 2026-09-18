@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { Polygon2D, Vector2D } from '../core/geom';
-import { Scene } from '../core/scene';
+import { Scene, SceneHistory } from '../core/scene';
 import { CanvasViewport } from './CanvasViewport';
+import { Toolbar } from './Toolbar';
+import type { Tool } from './tool';
 
-const demoScene = new Scene([
+const initialScene = new Scene([
   {
     id: 'demo-frame',
     shape: new Polygon2D([
@@ -15,27 +18,35 @@ const demoScene = new Scene([
 ]);
 
 export function App() {
+  const [history, setHistory] = useState(() => new SceneHistory(initialScene));
+  const [tool, setTool] = useState<Tool>('pan');
+
   return (
     <main style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
       <header style={{
-        height: 52,
-        flex: '0 0 52px',
+        minHeight: 52,
+        flex: '0 0 auto',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 20px',
+        flexWrap: 'wrap',
+        gap: 8,
+        padding: '8px 12px',
         borderBottom: '1px solid #cbd5e1',
         background: '#ffffff',
         color: '#172033',
         fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
       }}>
         <strong style={{ fontSize: 16, lineHeight: '24px', letterSpacing: 0 }}>Aluminium CAD</strong>
-        <span style={{ fontSize: 13, lineHeight: '20px', color: '#475569', letterSpacing: 0 }}>
-          1200 x 2200 mm
-        </span>
+        <Toolbar activeTool={tool} onToolChange={setTool} />
       </header>
       <section style={{ flex: 1, minHeight: 0 }} aria-label="Bản vẽ">
-        <CanvasViewport scene={demoScene} />
+        <CanvasViewport
+          scene={history.current}
+          tool={tool}
+          onCommitEntity={entity => setHistory(current =>
+            current.execute(current.current.addEntity(entity)))}
+        />
       </section>
     </main>
   );

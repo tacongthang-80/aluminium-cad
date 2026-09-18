@@ -203,3 +203,33 @@
 
 - Drawing and editing tools, SceneHistory ownership, selection interaction, adaptive grids, and touch pinch zoom remain deferred to the next stage step.
 - Verification passed with 73/73 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files. Desktop and narrow-viewport browser captures confirmed a nonblank, responsive canvas render.
+
+## 2026-09-18 - Drawing tools and snapping
+
+### What changed and why
+
+- Added pure nearest-candidate snapping for segment endpoints/edges and polygon vertices/edges.
+- Added pan, segment, and axis-aligned rectangle tools with live selected-style previews, snapping, degenerate-shape guards, and Escape cancellation.
+- Moved editable Scene ownership into `App` through `SceneHistory.execute`, so every committed shape now creates an undoable history state.
+
+### Key decisions
+
+- Snapping uses a constant 10-screen-pixel tolerance converted through the current Viewport scale, keeping its perceived reach stable while zooming.
+- Draft geometry uses the sentinel ID `__draft__` and a temporary Scene, allowing the existing selected rendering style to provide preview feedback without changing the renderer.
+- The Escape listener is installed at window level and releases active pointer capture before clearing the gesture. Changing tools performs the same cleanup to prevent stale drafts.
+- Toolbar controls reuse the existing white, slate, and blue visual language, use `aria-pressed`, and wrap below the title on narrow screens rather than shrinking labels.
+
+### Files touched
+
+- `src/render/snapping.ts`
+- `tests/render/snapping.test.ts`
+- `src/app/tool.ts`
+- `src/app/Toolbar.tsx`
+- `src/app/CanvasViewport.tsx`
+- `src/app/App.tsx`
+- `context.md`
+
+### Follow-up
+
+- Undo/redo controls and shortcuts, existing-entity selection/editing, idle snap indicators, additional geometry tools, and touch pinch zoom remain deferred.
+- Verification passed with 79/79 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files. Desktop and narrow browser captures confirmed responsive toolbar and canvas rendering.
