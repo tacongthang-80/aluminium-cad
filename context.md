@@ -114,3 +114,92 @@
 
 - No Canvas, DOM, React wiring, BOM aggregation, persistence, or production profile data was added; those remain separate later steps.
 - Verification passed with 52/52 tests, `npx tsc --noEmit`, and 100% statement/branch/function/line coverage for the catalog module and full covered codebase.
+
+## 2026-09-18 - Immutable Scene and history
+
+### What changed and why
+
+- Added a DOM-free Scene model for ordered segment/polygon entities and selection state.
+- Added immutable linear undo/redo over Scene snapshots.
+- Added contract tests and extended coverage collection to the scene module.
+
+### Key decisions
+
+- Scene copies and freezes its exposed arrays. Selection remains a plain readonly array as specified; temporary lookup structures are not exposed.
+- Segment bounds and box unions are calculated locally in `Scene.ts`, while polygon bounds delegate to `Polygon2D`, leaving the frozen geometry API unchanged.
+- SceneHistory uses two simple frozen arrays with the newest state at the end. Successful transitions return new histories; unavailable undo/redo returns the same instance as a no-op signal.
+
+### Files touched
+
+- `src/core/scene/Entity.ts`
+- `src/core/scene/Scene.ts`
+- `src/core/scene/SceneHistory.ts`
+- `src/core/scene/index.ts`
+- `tests/scene/Scene.test.ts`
+- `tests/scene/SceneHistory.test.ts`
+- `vitest.config.ts`
+- `context.md`
+
+### Follow-up
+
+- Canvas rendering, React integration, ID generation, drawing tools, pointer handling, history limits, persistence, and catalog integration remain out of scope.
+- Verification passed with 65/65 tests, `npx tsc --noEmit`, and 100% statement/branch/function/line coverage for `Scene.ts`, `SceneHistory.ts`, and the covered codebase. `Entity.ts` is type-only and contains no executable statements.
+
+## 2026-09-18 - Framework-agnostic canvas renderer
+
+### What changed and why
+
+- Added a minimal `CanvasLike` boundary and a pure `renderScene` function that clears the viewport, draws a fixed world-space grid, then draws unselected and selected Scene entities in separate passes.
+- Added a Node-only recording context and contract tests for clear behavior, exact grid coordinates, the grid safety cap, transformed segment/polygon paths, styles, and selected-on-top ordering.
+- Extended coverage collection to `src/render/**/*.ts` while excluding its barrel file.
+
+### Key decisions
+
+- The default grid is light gray (`#e5e7eb`) at 1px so it remains a reference layer; entities use dark gray (`#1f2937`) at 1.5px, and selection uses blue (`#2563eb`) at 2.5px for clear contrast without adding fills or effects.
+- Grid spacing is fixed at 100mm for this first pass. A cap of 500 lines per axis skips the entire grid at extreme zoom-out rather than hanging or drawing a misleading partial grid.
+- Every geometry point is transformed through `Viewport`; line widths remain screen-pixel values. The renderer uses no DOM globals and accepts a real browser context structurally through the deliberately browser-compatible `strokeStyle` union.
+
+### Files touched
+
+- `src/render/CanvasLike.ts`
+- `src/render/style.ts`
+- `src/render/renderScene.ts`
+- `src/render/index.ts`
+- `tests/render/renderScene.test.ts`
+- `tests/render/support/createRecordingContext.ts`
+- `vitest.config.ts`
+- `context.md`
+
+### Follow-up
+
+- React canvas wiring, device-pixel-ratio sizing, animation, adaptive grid spacing, interaction, hit testing, culling, and drawing tools remain deferred.
+- Verification passed with 71/71 tests, `npx tsc --noEmit`, and 100% statement/branch/function/line coverage for `renderScene.ts`, `style.ts`, and the covered executable codebase. `CanvasLike.ts` is type-only and contains no executable statements.
+
+## 2026-09-18 - Interactive React canvas
+
+### What changed and why
+
+- Replaced the JSON demo with a full-height React canvas showing the fixed 1200 x 2200mm demo Scene.
+- Added DPR-aware responsive canvas sizing, drag-to-pan, and cursor-anchored wheel zoom while keeping Scene immutable and parent-owned.
+- Added pure interaction helpers and Node-based unit tests for wheel factors and pointer coordinate conversion.
+
+### Key decisions
+
+- Wheel zoom uses a fixed `1.1` step for predictable increments; a zero wheel delta remains a true no-op.
+- Pointer positions and Viewport dimensions both use canvas backing pixels, so interaction remains aligned on HiDPI displays.
+- An empty Scene initially fits a 1000 x 1000mm box centered on the origin. Later container resizes preserve the current camera via `Viewport.resize` rather than resetting the user's view.
+- The component uses a non-passive native wheel listener so zoom can prevent page scrolling reliably; pointer capture keeps panning active outside the canvas boundary.
+
+### Files touched
+
+- `src/render/interaction.ts`
+- `tests/render/interaction.test.ts`
+- `src/app/CanvasViewport.tsx`
+- `src/app/App.tsx`
+- `index.html`
+- `context.md`
+
+### Follow-up
+
+- Drawing and editing tools, SceneHistory ownership, selection interaction, adaptive grids, and touch pinch zoom remain deferred to the next stage step.
+- Verification passed with 73/73 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files. Desktop and narrow-viewport browser captures confirmed a nonblank, responsive canvas render.
