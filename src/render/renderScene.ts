@@ -14,14 +14,13 @@ function drawEntity(ctx: CanvasLike, entity: Entity, viewport: Viewport): void {
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(end.x, end.y);
   } else {
-    const polygon = entity.shape as Polygon2D;
-    const first = viewport.worldToScreen(polygon.vertices[0]);
+    const first = viewport.worldToScreen(entity.shape.vertices[0]);
     ctx.moveTo(first.x, first.y);
-    for (const vertex of polygon.vertices.slice(1)) {
+    for (const vertex of entity.shape.vertices.slice(1)) {
       const point = viewport.worldToScreen(vertex);
       ctx.lineTo(point.x, point.y);
     }
-    ctx.closePath();
+    if (entity.shape instanceof Polygon2D) ctx.closePath();
   }
   ctx.stroke();
 }

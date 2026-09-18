@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BoundingBox2D, Polygon2D, Segment2D, Vector2D } from '../../src/core/geom';
+import { BoundingBox2D, Polygon2D, Polyline2D, Segment2D, Vector2D } from '../../src/core/geom';
 import { Scene, type Entity } from '../../src/core/scene';
 
 const segment = (id: string, x1: number, y1: number, x2: number, y2: number): Entity => ({
@@ -14,6 +14,15 @@ const polygon = (id: string): Entity => ({
     new Vector2D(8, -3),
     new Vector2D(8, 6),
     new Vector2D(-4, 6),
+  ]),
+});
+
+const polyline = (id: string): Entity => ({
+  id,
+  shape: new Polyline2D([
+    new Vector2D(-12, 3),
+    new Vector2D(2, 18),
+    new Vector2D(20, -11),
   ]),
 });
 
@@ -100,17 +109,23 @@ describe('Scene bounding boxes', () => {
     );
   });
 
-  it('unions exact bounds across segment and polygon entities', () => {
+  it('unions exact bounds across segment, polygon, and polyline entities', () => {
     const scene = new Scene([
       segment('line', -10, 12, 3, -8),
       polygon('panel'),
       segment('right', 5, 2, 15, 4),
+      polyline('path'),
     ]);
-    expect(scene.boundingBox()).toEqual(new BoundingBox2D(-10, -8, 15, 12));
+    expect(scene.boundingBox()).toEqual(new BoundingBox2D(-12, -11, 20, 18));
   });
 
   it('matches a single polygon own bounds', () => {
     const entity = polygon('panel');
     expect(new Scene([entity]).boundingBox()).toEqual((entity.shape as Polygon2D).boundingBox());
+  });
+
+  it('matches a single polyline own bounds', () => {
+    const entity = polyline('path');
+    expect(new Scene([entity]).boundingBox()).toEqual((entity.shape as Polyline2D).boundingBox());
   });
 });

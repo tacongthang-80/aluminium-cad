@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Scene } from '../../src/core/scene';
-import { Polygon2D, Segment2D, Vector2D } from '../../src/core/geom';
+import { Polygon2D, Polyline2D, Segment2D, Vector2D } from '../../src/core/geom';
 import { Viewport } from '../../src/core/viewport';
 import { DEFAULT_RENDER_STYLE, renderScene } from '../../src/render';
 import { createRecordingContext } from './support/createRecordingContext';
@@ -105,6 +105,30 @@ describe('renderScene entities', () => {
         lineWidth: entityStyle.entityLineWidthPx,
       },
     ]);
+  });
+
+  it('draws every polyline vertex without closing the transformed path', () => {
+    const viewport = new Viewport(320, 240, 2, new Vector2D(5, -10));
+    const vertices = [
+      new Vector2D(-20, -5),
+      new Vector2D(15, 30),
+      new Vector2D(50, -20),
+    ];
+    const context = createRecordingContext();
+    renderScene(context, new Scene([{ id: 'path', shape: new Polyline2D(vertices) }]), viewport, entityStyle);
+    const screen = vertices.map(vertex => viewport.worldToScreen(vertex));
+
+    expect(context.calls.slice(1)).toEqual([
+      { method: 'beginPath', args: [] },
+      { method: 'moveTo', args: [screen[0].x, screen[0].y] },
+      { method: 'lineTo', args: [screen[1].x, screen[1].y] },
+      { method: 'lineTo', args: [screen[2].x, screen[2].y] },
+      {
+        method: 'stroke', args: [], strokeStyle: entityStyle.entityColor,
+        lineWidth: entityStyle.entityLineWidthPx,
+      },
+    ]);
+    expect(context.calls.some(call => call.method === 'closePath')).toBe(false);
   });
 
   it('draws unselected entities first and selected entities last with distinct styling', () => {

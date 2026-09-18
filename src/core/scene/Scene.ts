@@ -1,5 +1,4 @@
 import { BoundingBox2D } from '../geom/BoundingBox2D';
-import { Polygon2D } from '../geom/Polygon2D';
 import { Segment2D } from '../geom/Segment2D';
 import type { Entity } from './Entity';
 
@@ -12,7 +11,7 @@ function entityBounds(entity: Entity): BoundingBox2D {
       Math.max(entity.shape.start.y, entity.shape.end.y),
     );
   }
-  return (entity.shape as Polygon2D).boundingBox();
+  return entity.shape.boundingBox();
 }
 
 function union(a: BoundingBox2D, b: BoundingBox2D): BoundingBox2D {

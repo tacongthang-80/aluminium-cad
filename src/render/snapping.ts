@@ -1,4 +1,4 @@
-import { Polygon2D, Segment2D, type Vector2D } from '../core/geom';
+import { Polygon2D, Polyline2D, Segment2D, type Vector2D } from '../core/geom';
 import type { Scene } from '../core/scene';
 
 export interface SnapResult {
@@ -35,7 +35,18 @@ export function snapPoint(
       continue;
     }
 
-    const polygon = entity.shape as Polygon2D;
+    if (entity.shape instanceof Polyline2D) {
+      entity.shape.vertices.forEach(consider);
+      for (let index = 0; index < entity.shape.vertices.length - 1; index++) {
+        considerSegment(new Segment2D(
+          entity.shape.vertices[index],
+          entity.shape.vertices[index + 1],
+        ));
+      }
+      continue;
+    }
+
+    const polygon: Polygon2D = entity.shape;
     polygon.vertices.forEach(consider);
     for (let index = 0; index < polygon.vertices.length; index++) {
       considerSegment(new Segment2D(

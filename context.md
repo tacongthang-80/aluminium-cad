@@ -313,3 +313,33 @@
 
 - Entity, Scene, renderer, snapping, and drawing-tool support remain deferred to sprint steps 3b and 3c.
 - Verification passed with 91/91 tests, `npm run build`, and 100% statement/branch/function/line coverage for `Polyline2D.ts` and the full covered executable codebase.
+
+## 2026-09-19 - Polyline2D infrastructure integration
+
+### What changed and why
+
+- Extended the Scene entity shape union to include `Polyline2D`.
+- Added Polyline2D bounds, open-path rendering, and vertex/edge snapping support across the existing infrastructure.
+- Added regression tests covering mixed and standalone Scene bounds, exact open render paths, and the absence of a phantom closing snap edge.
+
+### Key decisions
+
+- Scene bounds reuse the shared `boundingBox()` contract after the Segment2D branch, so Polygon2D and Polyline2D require no duplicated type branches.
+- Renderer vertex walking is shared between closed and open multi-vertex shapes; only Polygon2D calls `closePath()`.
+- Snapping handles Polyline2D explicitly and iterates only consecutive pairs through `vertices.length - 1`, while Polygon2D retains wraparound behavior.
+
+### Files touched
+
+- `src/core/scene/Entity.ts`
+- `src/core/scene/Scene.ts`
+- `src/render/renderScene.ts`
+- `src/render/snapping.ts`
+- `tests/scene/Scene.test.ts`
+- `tests/render/renderScene.test.ts`
+- `tests/render/snapping.test.ts`
+- `context.md`
+
+### Follow-up
+
+- A UI tool for creating Polyline2D entities remains deferred to step 3c. Trim and Extend remain separate later prompts.
+- Verification passed with 95/95 tests, `npm run build`, and 100% statement/branch/function/line coverage for the touched executable files and full covered codebase.
