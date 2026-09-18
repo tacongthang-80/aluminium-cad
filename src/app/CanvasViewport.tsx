@@ -57,7 +57,7 @@ export function CanvasViewport({
   const drawRef = useRef<{ pointerId: number; anchor: Vector2D } | null>(null);
   const [viewport, setViewport] = useState<Viewport | null>(null);
   const [draft, setDraft] = useState<Entity | null>(null);
-  const [snapIndicator, setSnapIndicator] = useState<Vector2D | null>(null);
+  const [snapIndicator, setSnapIndicator] = useState<{ point: Vector2D; mode: SnapMode } | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -98,11 +98,16 @@ export function CanvasViewport({
       highlightIds.push(draft.id);
     }
     if (snapIndicator) {
-      renderedScene = renderedScene.addEntity({
-        id: SNAP_INDICATOR_ID,
-        shape: createSnapIndicator(snapIndicator, SNAP_INDICATOR_RADIUS_PX / viewport.scale),
+      const shapes = createSnapIndicator(
+        snapIndicator.point,
+        SNAP_INDICATOR_RADIUS_PX / viewport.scale,
+        snapIndicator.mode,
+      );
+      shapes.forEach((shape, index) => {
+        const id = `${SNAP_INDICATOR_ID}-${index}`;
+        renderedScene = renderedScene.addEntity({ id, shape });
+        highlightIds.push(id);
       });
-      highlightIds.push(SNAP_INDICATOR_ID);
     }
     if (highlightIds.length > 0) renderedScene = renderedScene.select(highlightIds);
     renderScene(context, renderedScene, viewport, style);
@@ -216,7 +221,9 @@ export function CanvasViewport({
     const worldPoint = viewport.screenToWorld(screenPoint(event));
     const draw = drawRef.current;
     const result = resolveDrawPoint(worldPoint, viewport, draw?.anchor);
-    setSnapIndicator(result.snapped ? result.point : null);
+    setSnapIndicator(result.snapped && result.mode
+      ? { point: result.point, mode: result.mode }
+      : null);
     if (!draw || draw.pointerId !== event.pointerId) return;
     const shape = tool === 'segment'
       ? new Segment2D(draw.anchor, result.point)

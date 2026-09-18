@@ -431,3 +431,28 @@
 
 - Intersection and Perpendicular candidate generation remains deferred to OSNAP Step B. Indicator styling remains shared across modes.
 - Verification passed with 111/111 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files. Desktop and narrow captures confirmed the OSNAP row remains usable.
+
+## 2026-09-19 - Mode-specific OSNAP indicators
+
+### What changed and why
+
+- Replaced the shared octagonal snap marker with standard CAD-style symbols: square for Endpoint, triangle for Midpoint, circle for Nearest, X for Intersection, and T for Perpendicular.
+- Carried the winning snap mode into the canvas preview so the renderer can select the correct symbol.
+
+### Key decisions
+
+- Indicators remain temporary scene geometry, preserving the framework-agnostic renderer and constant six-pixel screen radius at every zoom level.
+- X and T use two temporary segments; the closed symbols use polygons, with the circle approximated by 12 sides.
+- Intersection and Perpendicular symbols are ready but remain invisible until their candidate generation is implemented in OSNAP Step B.
+
+### Files touched
+
+- `src/render/indicator.ts`
+- `src/app/CanvasViewport.tsx`
+- `tests/render/indicator.test.ts`
+- `context.md`
+
+### Follow-up
+
+- Intersection and Perpendicular candidate generation remains deferred to OSNAP Step B.
+- Verification passed with 114/114 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.
