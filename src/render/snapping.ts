@@ -29,8 +29,12 @@ export function snapPoint(worldPoint: Vector2D, scene: Scene, options: SnapOptio
   const consider = (point: Vector2D, mode: SnapMode) => {
     const distance = worldPoint.distanceTo(point);
     if (distance > options.toleranceWorld) return;
-    if (!best || distance < best.distance ||
-      (distance === best.distance && PRIORITY[mode] < PRIORITY[best.mode])) {
+    const replacesNearest = mode !== 'nearest' && best?.mode === 'nearest';
+    const sameCandidateClass = (mode === 'nearest') === (best?.mode === 'nearest');
+    if (!best || replacesNearest || (sameCandidateClass && (
+      distance < best.distance ||
+      (distance === best.distance && PRIORITY[mode] < PRIORITY[best.mode])
+    ))) {
       best = { point, mode, distance };
     }
   };

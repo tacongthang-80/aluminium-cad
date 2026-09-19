@@ -56,12 +56,15 @@ describe('snapPoint OSNAP modes', () => {
     });
   });
 
-  it('chooses the closest candidate across enabled modes and reports its mode', () => {
+  it('uses nearest only as a fallback behind discrete snap points', () => {
     expect(snap(new Vector2D(48, 3), segmentScene, ['endpoint', 'midpoint'], 60)).toEqual({
       point: new Vector2D(50, 0), snapped: true, mode: 'midpoint',
     });
     expect(snap(new Vector2D(48, 3), segmentScene, ['endpoint', 'midpoint', 'nearest'], 60)).toEqual({
-      point: new Vector2D(48, 0), snapped: true, mode: 'nearest',
+      point: new Vector2D(50, 0), snapped: true, mode: 'midpoint',
+    });
+    expect(snap(new Vector2D(2, 3), segmentScene, ['endpoint', 'nearest'], 5)).toEqual({
+      point: new Vector2D(0, 0), snapped: true, mode: 'endpoint',
     });
   });
 

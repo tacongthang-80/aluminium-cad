@@ -456,3 +456,26 @@
 
 - Intersection and Perpendicular candidate generation remains deferred to OSNAP Step B.
 - Verification passed with 114/114 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.
+
+## 2026-09-19 - OSNAP marker selection correction
+
+### What changed and why
+
+- Changed Nearest snapping to a fallback behind discrete snap points so its circle no longer masks Endpoint squares and Midpoint triangles near those locations.
+- Added regression coverage for Endpoint and Midpoint while Nearest is enabled.
+
+### Key decisions
+
+- Endpoint, Midpoint, and future discrete modes still compete by cursor distance, with the established mode priority used only for equal distances.
+- Nearest remains available wherever no discrete candidate is inside the snap tolerance.
+
+### Files touched
+
+- `src/render/snapping.ts`
+- `tests/render/snapping.test.ts`
+- `context.md`
+
+### Follow-up
+
+- Intersection and Perpendicular candidate generation remains deferred to OSNAP Step B.
+- Verification passed with 114/114 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.
