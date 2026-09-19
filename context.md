@@ -479,3 +479,30 @@
 
 - Intersection and Perpendicular candidate generation remains deferred to OSNAP Step B.
 - Verification passed with 114/114 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.
+
+## 2026-09-19 - Multi-crossing Segment Trim correction
+
+### What changed and why
+
+- Corrected Segment Trim to remove only the target piece containing the click when multiple cutting boundaries cross the segment.
+- `computeTrim` now returns one retained segment for an end-piece trim or two retained segments for a middle-piece trim.
+
+### Key decisions
+
+- The algorithm independently selects the closest crossing below and above the click parameter instead of choosing one crossing by absolute distance.
+- A one-piece result keeps the original entity ID. A two-piece split receives two fresh IDs because neither retained piece is the unique successor.
+- Both replacement pieces are committed through one `SceneHistory.execute`, preserving a single undo step.
+
+### Files touched
+
+- `src/render/trim.ts`
+- `tests/render/trim.test.ts`
+- `src/app/CanvasViewport.tsx`
+- `src/app/App.tsx`
+- `context.md`
+
+### Follow-up
+
+- Rectangle-edge Trim must be redesigned against this array-returning contract and remains unimplemented.
+- Stretch remains a separate, unimplemented step.
+- Verification passed with 118/118 tests, `npm run build`, and 100% statement/branch/function/line coverage for all covered executable files.

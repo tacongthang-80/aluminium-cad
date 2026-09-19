@@ -17,6 +17,7 @@ interface CanvasViewportProps {
   readonly tool: Tool;
   readonly onCommitEntity: (entity: Entity) => void;
   readonly onReplaceEntity: (id: string, shape: Segment2D | Polygon2D | Polyline2D) => void;
+  readonly onTrimEntity: (id: string, segments: ReadonlyArray<Segment2D>) => void;
   readonly orthoEnabled: boolean;
   readonly enabledSnapModes: ReadonlySet<SnapMode>;
   readonly style?: RenderStyle;
@@ -47,6 +48,7 @@ export function CanvasViewport({
   tool,
   onCommitEntity,
   onReplaceEntity,
+  onTrimEntity,
   orthoEnabled,
   enabledSnapModes,
   style = DEFAULT_RENDER_STYLE,
@@ -182,13 +184,19 @@ export function CanvasViewport({
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     if (!viewport) return;
     const point = screenPoint(event);
-    if (tool === 'trim' || tool === 'extend') {
+    if (tool === 'trim') {
       const worldPoint = viewport.screenToWorld(point);
       const target = findNearestSegmentEntity(worldPoint, scene, SNAP_TOLERANCE_PX / viewport.scale);
       if (!target) return;
-      const result = tool === 'trim'
-        ? computeTrim(target, worldPoint, scene)
-        : computeExtend(target, worldPoint, scene);
+      const result = computeTrim(target, worldPoint, scene);
+      if (result) onTrimEntity(target.id, result);
+      return;
+    }
+    if (tool === 'extend') {
+      const worldPoint = viewport.screenToWorld(point);
+      const target = findNearestSegmentEntity(worldPoint, scene, SNAP_TOLERANCE_PX / viewport.scale);
+      if (!target) return;
+      const result = computeExtend(target, worldPoint, scene);
       if (result) onReplaceEntity(target.id, result);
       return;
     }

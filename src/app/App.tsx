@@ -69,6 +69,16 @@ export function App() {
             current.execute(current.current.addEntity(entity)))}
           onReplaceEntity={(id, shape) => setHistory(current =>
             current.execute(current.current.removeEntity(id).addEntity({ id, shape })))}
+          onTrimEntity={(id, segments) => setHistory(current => {
+            const withoutTarget = current.current.removeEntity(id);
+            const next = segments.length === 1
+              ? withoutTarget.addEntity({ id, shape: segments[0] })
+              : segments.reduce(
+                (scene, shape) => scene.addEntity({ id: crypto.randomUUID(), shape }),
+                withoutTarget,
+              );
+            return current.execute(next);
+          })}
         />
       </section>
     </main>
